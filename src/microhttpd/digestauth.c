@@ -27,6 +27,15 @@
 #include "internal.h"
 #include "md5.h"
 
+#ifdef MHD_W32_MUTEX_
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif /* !WIN32_LEAN_AND_MEAN */
+#include <windows.h>
+#endif /* _WIN32 */
+#endif /* MHD_W32_MUTEX_ */
+
 #define HASH_MD5_HEX_LEN (2 * MD5_DIGEST_SIZE)
 
 /**
@@ -317,19 +326,19 @@ check_nonce_nc (struct MHD_Connection *connection,
    * then only increase the nonce counter by one.
    */
 
-  (void) pthread_mutex_lock (&connection->daemon->nnc_lock);
+  (void) MHD_mutex_lock_ (&connection->daemon->nnc_lock);
   if (0 == nc)
     {
       strcpy(connection->daemon->nnc[off].nonce,
 	     nonce);
       connection->daemon->nnc[off].nc = 0;
-      (void) pthread_mutex_unlock (&connection->daemon->nnc_lock);
+      (void) MHD_mutex_unlock_ (&connection->daemon->nnc_lock);
       return MHD_YES;
     }
   if ( (nc <= connection->daemon->nnc[off].nc) ||
        (0 != strcmp(connection->daemon->nnc[off].nonce, nonce)) )
     {
-      (void) pthread_mutex_unlock (&connection->daemon->nnc_lock);
+      (void) MHD_mutex_unlock_ (&connection->daemon->nnc_lock);
 #if HAVE_MESSAGES
       MHD_DLOG (connection->daemon,
 		"Stale nonce received.  If this happens a lot, you should probably increase the size of the nonce array.\n");
@@ -337,7 +346,7 @@ check_nonce_nc (struct MHD_Connection *connection,
       return MHD_NO;
     }
   connection->daemon->nnc[off].nc = nc;
-  (void) pthread_mutex_unlock (&connection->daemon->nnc_lock);
+  (void) MHD_mutex_unlock_ (&connection->daemon->nnc_lock);
   return MHD_YES;
 }
 
