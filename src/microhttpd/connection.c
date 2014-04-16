@@ -114,6 +114,19 @@
 
 
 /**
+ * Get user data for the daemon that owns this connection.
+ *
+ * @param connection connection to get daemon udata from
+ * @return udata on the daemon
+ * @ingroup request
+ */
+void*
+MHD_get_connection_daemon_udata (struct MHD_Connection *connection)
+{
+    return connection->daemon->uData;
+}
+
+/**
  * Get all of the headers from the request.
  *
  * @param connection connection to get values from

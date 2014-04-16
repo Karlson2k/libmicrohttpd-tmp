@@ -3175,6 +3175,14 @@ parse_options_va (struct MHD_Daemon *daemon,
             va_arg (ap, UnescapeCallback);
           daemon->unescape_callback_cls = va_arg (ap, void *);
           break;
+        case MHD_OPTION_DAEMON_CREATE_UDATA:
+          daemon->create_udata_callback =
+            va_arg (ap, CreateUserDataCallback);
+          break;
+        case MHD_OPTION_DAEMON_DESTROY_UDATA:
+          daemon->destroy_udata_callback =
+            va_arg (ap, DestroyUserDataCallback);
+          break;
         default:
 #if HAVE_MESSAGES
           if (((opt >= MHD_OPTION_HTTPS_MEM_KEY) &&
@@ -3909,6 +3917,10 @@ MHD_start_daemon_va (unsigned int flags,
               (void) MHD_mutex_destroy_ (&d->cleanup_connection_mutex);
               goto thread_failed;
             }
+          if(d->create_udata_callback)
+          {
+              d->uData = (*d->create_udata_callback)();
+          }
         }
     }
   return daemon;
@@ -4081,14 +4093,20 @@ MHD_stop_daemon (struct MHD_Daemon *daemon)
       /* MHD_USE_NO_LISTEN_SOCKET disables thread pools, hence we need to check */
       for (i = 0; i < daemon->worker_pool_size; ++i)
 	{
-	  daemon->worker_pool[i].shutdown = MHD_YES;
-	  daemon->worker_pool[i].socket_fd = MHD_INVALID_SOCKET;
+          struct MHD_Daemon *d = &daemon->worker_pool[i];
+	  d->shutdown = MHD_YES;
+	  d->socket_fd = MHD_INVALID_SOCKET;
 #if EPOLL_SUPPORT
 	  if ( (0 != (daemon->options & MHD_USE_EPOLL_LINUX_ONLY)) &&
-	       (-1 != daemon->worker_pool[i].epoll_fd) &&
+	       (-1 != d->epoll_fd) &&
 	       (MHD_INVALID_SOCKET == fd) )
-	    epoll_shutdown (&daemon->worker_pool[i]);
+	    epoll_shutdown (d);
 #endif
+          if(d->uData && d->destroy_udata_callback)
+          {
+            (*d->destroy_udata_callback)(d->uData);
+            d->uData = 0;
+          }
 	}
     }
   if (MHD_INVALID_PIPE_ != daemon->wpipe[1])

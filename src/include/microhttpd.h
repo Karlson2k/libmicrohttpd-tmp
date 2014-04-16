@@ -844,7 +844,21 @@ enum MHD_OPTION
    * HTTPS daemon for key exchange.
    * This option must be followed by a `const char *` argument.
    */
-  MHD_OPTION_HTTPS_MEM_DHPARAMS = 24
+  MHD_OPTION_HTTPS_MEM_DHPARAMS = 24,
+
+  /**
+   * Callback function to create a per daemon/thread userdata.
+   * This option must be followed by a pointer to a function returning a
+   * void pointer.
+   */
+  MHD_OPTION_DAEMON_CREATE_UDATA = 25,
+
+  /**
+   * Callback function to destroy a per daemon/thread userdata.
+   * This option must be followed by a pointer to a void function with a
+   * void pointer parameter.
+   */
+  MHD_OPTION_DAEMON_DESTROY_UDATA = 26,
 
 };
 
@@ -1593,6 +1607,17 @@ MHD_run_from_select (struct MHD_Daemon *daemon,
 
 
 /* **************** Connection handling functions ***************** */
+
+/**
+ * Get user data for the daemon that owns this connection.
+ *
+ * @param connection connection to get daemon udata from
+ * @return udata on the daemon
+ * @ingroup request
+ */
+_MHD_EXTERN void*
+MHD_get_connection_daemon_udata (struct MHD_Connection *connection);
+
 
 /**
  * Get all of the headers from the request.

@@ -881,6 +881,23 @@ typedef size_t (*UnescapeCallback)(void *cls,
 
 
 /**
+ * Signature of function called to create userdata.
+ *
+ * @return void pointer to set as userdata
+ */
+typedef void* (*CreateUserDataCallback)();
+
+
+/**
+ * Signature of function called to destroy userdata.
+ *
+ * @param the userdata pointer
+ * @return nothing
+ */
+typedef void (*DestroyUserDataCallback)(void *);
+
+
+/**
  * State kept for each MHD daemon.  All connections are kept in two
  * doubly-linked lists.  The first one reflects the state of the
  * connection in terms of what operations we are waiting for (read,
@@ -1248,6 +1265,21 @@ struct MHD_Daemon
    */
   unsigned int fastopen_queue_size;
 #endif
+  
+  /**
+   *Reserved for user data per thread
+   */
+  void *uData;
+  
+  /**
+   * Function to create userdata on a daemon
+   */
+  void* (*create_udata_callback) (void);
+  
+  /**
+   * Function to destroy userdata for a daemon
+   */
+  void (*destroy_udata_callback) (void *);
 };
 
 
