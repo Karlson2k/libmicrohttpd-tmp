@@ -368,9 +368,9 @@ MHD_digest_auth_get_username(struct MHD_Connection *connection)
 						     MHD_HEADER_KIND,
 						     MHD_HTTP_HEADER_AUTHORIZATION)))
     return NULL;
-  if (0 != strncmp (header, _BASE, strlen (_BASE)))
+  if (0 != strncmp (header, _BASE, STRLEN_LITERAL (_BASE)))
     return NULL;
-  header += strlen (_BASE);
+  header += STRLEN_LITERAL (_BASE);
   if (0 == (len = lookup_sub_value (user,
 				    sizeof (user),
 				    header,
@@ -580,9 +580,9 @@ MHD_digest_auth_check (struct MHD_Connection *connection,
 					MHD_HTTP_HEADER_AUTHORIZATION);
   if (NULL == header)
     return MHD_NO;
-  if (0 != strncmp(header, _BASE, strlen(_BASE)))
+  if (0 != strncmp(header, _BASE, STRLEN_LITERAL(_BASE)))
     return MHD_NO;
-  header += strlen (_BASE);
+  header += STRLEN_LITERAL (_BASE);
   left = strlen (header);
 
   {
@@ -594,7 +594,7 @@ MHD_digest_auth_check (struct MHD_Connection *connection,
     if ( (0 == len) ||
 	 (0 != strcmp(username, un)) )
       return MHD_NO;
-    left -= strlen ("username") + len;
+    left -= STRLEN_LITERAL ("username") + len;
   }
 
   {
@@ -606,14 +606,14 @@ MHD_digest_auth_check (struct MHD_Connection *connection,
     if ( (0 == len) ||
 	 (0 != strcmp(realm, r)) )
       return MHD_NO;
-    left -= strlen ("realm") + len;
+    left -= STRLEN_LITERAL ("realm") + len;
   }
 
   if (0 == (len = lookup_sub_value (nonce,
 				    sizeof (nonce),
 				    header, "nonce")))
     return MHD_NO;
-  left -= strlen ("nonce") + len;
+  left -= STRLEN_LITERAL ("nonce") + len;
   if (left > 32 * 1024)
   {
     /* we do not permit URIs longer than 32k, as we want to

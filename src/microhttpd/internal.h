@@ -44,6 +44,10 @@
 #include <netinet/tcp.h>
 #endif
 
+/**
+ * Used to get the strlen for literals at compiletime
+ */
+#define STRLEN_LITERAL(s) ((sizeof(s)/sizeof(char))-sizeof(char))
 
 /**
  * Should we perform additional sanity checks at runtime (on our internal

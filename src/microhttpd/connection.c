@@ -266,7 +266,7 @@ need_100_continue (struct MHD_Connection *connection)
 							   MHD_HTTP_HEADER_EXPECT))) &&
 	   (0 == strcasecmp (expect, "100-continue")) &&
 	   (connection->continue_message_write_offset <
-	    strlen (HTTP_100_CONTINUE)) );
+	    STRLEN_LITERAL (HTTP_100_CONTINUE)) );
 }
 
 
@@ -825,7 +825,7 @@ build_header_response (struct MHD_Connection *connection)
                      (MHD_YES == keepalive_possible (connection)) &&
 		     (NULL == end) );
   if (must_add_close)
-    size += strlen ("Connection: close\r\n");
+    size += STRLEN_LITERAL ("Connection: close\r\n");
   for (pos = connection->response->first_header; NULL != pos; pos = pos->next)
     if (pos->kind == kind)
       size += strlen (pos->header) + strlen (pos->value) + 4; /* colon, space, linefeeds */
@@ -849,9 +849,10 @@ build_header_response (struct MHD_Connection *connection)
 	 stop reading from the socket; however, we are not adding the header
 	 to the response as the response may be used in a different context
 	 as well */
-      memcpy (&data[off], "Connection: close\r\n",
-	      strlen ("Connection: close\r\n"));
-      off += strlen ("Connection: close\r\n");
+      const char conn_close_hdr[] = "Connection: close\r\n";
+      size_t hsz = STRLEN_LITERAL (conn_close_hdr);
+      memcpy (&data[off], conn_close_hdr, hsz);
+      off += hsz;
     }
   for (pos = connection->response->first_header; NULL != pos; pos = pos->next)
     if (pos->kind == kind)
@@ -1261,7 +1262,8 @@ parse_cookie_header (struct MHD_Connection *connection)
 				     MHD_HTTP_HEADER_COOKIE);
   if (NULL == hdr)
     return MHD_YES;
-  cpy = MHD_pool_allocate (connection->pool, strlen (hdr) + 1, MHD_YES);
+  size_t hsz = strlen (hdr)+1;
+  cpy = MHD_pool_allocate (connection->pool, hsz, MHD_YES);
   if (NULL == cpy)
     {
 #if HAVE_MESSAGES
@@ -1271,7 +1273,7 @@ parse_cookie_header (struct MHD_Connection *connection)
                                REQUEST_TOO_BIG);
       return MHD_NO;
     }
-  memcpy (cpy, hdr, strlen (hdr) + 1);
+  memcpy (cpy, hdr, hsz);
   pos = cpy;
   while (NULL != pos)
     {
@@ -1319,12 +1321,15 @@ parse_cookie_header (struct MHD_Connection *connection)
           semicolon++;
         }
       /* remove quotes */
-      if ( ('"' == equals[0]) &&
-           ('"' == equals[strlen (equals) - 1]) )
+      if ('"' == equals[0])
+      {
+          size_t szeq = strlen (equals) - 1;
+        if ('"' == equals[szeq])
         {
-          equals[strlen (equals) - 1] = '\0';
+          equals[szeq] = '\0';
           equals++;
         }
+      }
       if (MHD_NO == connection_add_header (connection,
                                            pos, equals, MHD_COOKIE_KIND))
         return MHD_NO;
@@ -1839,7 +1844,7 @@ process_broken_line (struct MHD_Connection *connection,
       return MHD_NO;
     }
   /* we still have the current line to deal with... */
-  if (0 != strlen (line))
+  if (*line)
     {
       if (MHD_NO == process_header_line (connection, line))
         {
@@ -1887,7 +1892,7 @@ parse_connection_headers (struct MHD_Connection *connection)
 #endif
       EXTRA_CHECK (NULL == connection->response);
       response =
-        MHD_create_response_from_buffer (strlen (REQUEST_LACKS_HOST),
+        MHD_create_response_from_buffer (STRLEN_LITERAL (REQUEST_LACKS_HOST),
 					 REQUEST_LACKS_HOST,
 					 MHD_RESPMEM_PERSISTENT);
       MHD_queue_response (connection, MHD_HTTP_BAD_REQUEST, response);
@@ -2062,7 +2067,7 @@ MHD_connection_handle_write (struct MHD_Connection *connection)
           ret = connection->send_cls (connection,
                                       &HTTP_100_CONTINUE
                                       [connection->continue_message_write_offset],
-                                      strlen (HTTP_100_CONTINUE) -
+                                      STRLEN_LITERAL (HTTP_100_CONTINUE) -
                                       connection->continue_message_write_offset);
           if (ret < 0)
             {
@@ -2291,7 +2296,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
                 }
               break;
             }
-          if (strlen (line) == 0)
+          if (!*line)
             {
               connection->state = MHD_CONNECTION_HEADERS_RECEIVED;
               continue;
@@ -2322,7 +2327,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
           if (MHD_NO ==
               process_broken_line (connection, line, MHD_HEADER_KIND))
             continue;
-          if (0 == strlen (line))
+          if (!*line)
             {
               connection->state = MHD_CONNECTION_HEADERS_RECEIVED;
               continue;
@@ -2359,7 +2364,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
           continue;
         case MHD_CONNECTION_CONTINUE_SENDING:
           if (connection->continue_message_write_offset ==
-              strlen (HTTP_100_CONTINUE))
+              STRLEN_LITERAL (HTTP_100_CONTINUE))
             {
               connection->state = MHD_CONNECTION_CONTINUE_SENT;
               continue;
@@ -2399,7 +2404,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
                 }
               break;
             }
-          if (0 == strlen (line))
+          if (!*line)
             {
               connection->state = MHD_CONNECTION_FOOTERS_RECEIVED;
               continue;
@@ -2430,7 +2435,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
           if (MHD_NO ==
               process_broken_line (connection, line, MHD_FOOTER_KIND))
             continue;
-          if (0 == strlen (line))
+          if (!*line)
             {
               connection->state = MHD_CONNECTION_FOOTERS_RECEIVED;
               continue;
