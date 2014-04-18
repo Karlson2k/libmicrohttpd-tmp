@@ -287,19 +287,19 @@ MHD_create_post_processor (struct MHD_Connection *connection,
     return NULL;
   boundary = NULL;
   if (0 != strncasecmp (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, encoding,
-                        strlen (MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
+                        STRLEN_LITERAL (MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
     {
       if (0 !=
           strncasecmp (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, encoding,
-                       strlen (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
+                       STRLEN_LITERAL (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
         return NULL;
       boundary =
-        &encoding[strlen (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)];
+        &encoding[STRLEN_LITERAL (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)];
       /* Q: should this be "strcasestr"? */
       boundary = strstr (boundary, "boundary=");
       if (NULL == boundary)
 	return NULL; /* failed to determine boundary */
-      boundary += strlen ("boundary=");
+      boundary += STRLEN_LITERAL ("boundary=");
       blen = strlen (boundary);
       if ((blen == 0) || (blen * 2 + 2 > buffer_size))
         return NULL;            /* (will be) out of memory or invalid boundary */
@@ -501,9 +501,10 @@ try_match_header (const char *prefix, char *line, char **suffix)
     return MHD_NO;
   while (*line != 0)
     {
-      if (0 == strncasecmp (prefix, line, strlen (prefix)))
+       size_t szp = strlen (prefix);
+      if (0 == strncasecmp (prefix, line, szp))
         {
-          *suffix = strdup (&line[strlen (prefix)]);
+          *suffix = strdup (&line[szp]);
           return MHD_YES;
         }
       ++line;
@@ -661,12 +662,14 @@ process_multipart_headers (struct MHD_PostProcessor *pp,
   if (buf[newline] == '\r')
     pp->skip_rn = RN_OptN;
   buf[newline] = '\0';
-  if (0 == strncasecmp ("Content-disposition: ",
-                        buf, strlen ("Content-disposition: ")))
+  const char content_disposition_hdr[] = "Content-disposition: ";
+  size_t szcd = STRLEN_LITERAL (content_disposition_hdr);
+  if (0 == strncasecmp (content_disposition_hdr,
+                        buf, szcd))
     {
-      try_get_value (&buf[strlen ("Content-disposition: ")],
+      try_get_value (&buf[szcd],
                      "name", &pp->content_name);
-      try_get_value (&buf[strlen ("Content-disposition: ")],
+      try_get_value (&buf[szcd],
                      "filename", &pp->content_filename);
     }
   else
@@ -966,19 +969,22 @@ post_process_multipart (struct MHD_PostProcessor *pp,
           state_changed = 1;
           break;
         case PP_PerformCheckMultipart:
+        {
+          const char multipart_mixed[] = "multipart/mixed";
           if ((pp->content_type != NULL) &&
               (0 == strncasecmp (pp->content_type,
-                                 "multipart/mixed",
-                                 strlen ("multipart/mixed"))))
+                                 multipart_mixed,
+                                 STRLEN_LITERAL (multipart_mixed))))
             {
-              pp->nested_boundary = strstr (pp->content_type, "boundary=");
+              const char boundary_eq[] = "boundary=";
+              pp->nested_boundary = strstr (pp->content_type, boundary_eq);
               if (pp->nested_boundary == NULL)
                 {
                   pp->state = PP_Error;
                   return MHD_NO;
                 }
               pp->nested_boundary =
-                strdup (&pp->nested_boundary[strlen ("boundary=")]);
+                strdup (&pp->nested_boundary[STRLEN_LITERAL (boundary_eq)]);
               if (pp->nested_boundary == NULL)
                 {
                   /* out of memory */
@@ -997,6 +1003,7 @@ post_process_multipart (struct MHD_PostProcessor *pp,
           pp->state = PP_ProcessValueToBoundary;
           pp->value_offset = 0;
           state_changed = 1;
+        }
           break;
         case PP_ProcessValueToBoundary:
           if (MHD_NO == process_value_to_boundary (pp,
@@ -1136,11 +1143,11 @@ MHD_post_process (struct MHD_PostProcessor *pp,
   if (NULL == pp)
     return MHD_NO;
   if (0 == strncasecmp (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, pp->encoding,
-                         strlen(MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
+                         STRLEN_LITERAL(MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
     return post_process_urlencoded (pp, post_data, post_data_len);
   if (0 ==
       strncasecmp (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, pp->encoding,
-                   strlen (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
+                   STRLEN_LITERAL (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
     return post_process_multipart (pp, post_data, post_data_len);
   /* this should never be reached */
   return MHD_NO;

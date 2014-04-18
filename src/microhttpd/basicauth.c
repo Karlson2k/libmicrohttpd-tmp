@@ -54,9 +54,9 @@ MHD_basic_auth_get_username_password (struct MHD_Connection *connection,
   if ( (NULL == (header = MHD_lookup_connection_value (connection, 
 						       MHD_HEADER_KIND,
 						       MHD_HTTP_HEADER_AUTHORIZATION))) ||
-       (0 != strncmp (header, _BASIC_BASE, strlen(_BASIC_BASE))) )
+       (0 != strncmp (header, _BASIC_BASE, STRLEN_LITERAL(_BASIC_BASE))) )
     return NULL;
-  header += strlen (_BASIC_BASE);
+  header += STRLEN_LITERAL (_BASIC_BASE);
   if (NULL == (decode = BASE64Decode (header)))
     {
 #if HAVE_MESSAGES
@@ -118,7 +118,7 @@ MHD_queue_basic_auth_fail_response (struct MHD_Connection *connection,
 				    struct MHD_Response *response) 
 {
   int ret;
-  size_t hlen = strlen(realm) + strlen("Basic realm=\"\"") + 1;
+  size_t hlen = strlen(realm) + STRLEN_LITERAL("Basic realm=\"\"") + 1;
   char header[hlen];
 
   snprintf (header, 
