@@ -1951,17 +1951,15 @@ MHD_create_response_from_fd (size_t size,
  *        data; will be closed when response is destroyed;
  *        fd should be in 'blocking' mode
  * @param offset offset to start reading from in the file;
- *        Be careful! `off_t` may have been compiled to be a
- *        64-bit variable for MHD, in which case your application
- *        also has to be compiled using the same options! Read
- *        the MHD manual for more details.
+ *        Be careful! offset values > 0x7FFFFFFFFF may be
+ *        not supported by OS or MHD build
  * @return NULL on error (i.e. invalid arguments, out of memory)
  * @ingroup response
  */
 _MHD_EXTERN struct MHD_Response *
 MHD_create_response_from_fd_at_offset (size_t size,
 				       int fd,
-				       off_t offset);
+				       uint64_t offset);
 
 
 #if 0

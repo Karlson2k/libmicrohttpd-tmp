@@ -317,8 +317,11 @@ file_reader (void *cls, uint64_t pos, char *buf, size_t max)
 {
   struct MHD_Response *response = cls;
   ssize_t n;
+  uint64_t set_pos = pos + response->fd_off;
 
-  (void) lseek (response->fd, pos + response->fd_off, SEEK_SET);
+  if ((uint64_t)lseek (response->fd, set_pos, SEEK_SET) != set_pos)
+    return MHD_CONTENT_READER_END_WITH_ERROR;
+
   n = read (response->fd, buf, max);
   if (0 == n)
     return MHD_CONTENT_READER_END_OF_STREAM;
@@ -353,19 +356,22 @@ free_callback (void *cls)
  *        data; will be closed when response is destroyed;
  *        fd should be in 'blocking' mode
  * @param offset offset to start reading from in the file;
- *        Be careful! `off_t` may have been compiled to be a
- *        64-bit variable for MHD, in which case your application
- *        also has to be compiled using the same options! Read
- *        the MHD manual for more details.
+ *        Be careful! offset values > 0x7FFFFFFFFF may be
+ *        not supported by OS or MHD build
  * @return NULL on error (i.e. invalid arguments, out of memory)
  * @ingroup response
  */
 struct MHD_Response *
 MHD_create_response_from_fd_at_offset (size_t size,
 				       int fd,
-				       off_t offset)
+					   uint64_t offset)
 {
   struct MHD_Response *response;
+
+  /* Check for support of requested offset value */
+  if (sizeof(uint64_t) > sizeof(off_t) &&
+        ((uint64_t)((off_t)offset)) != offset)
+    return NULL;
 
   response = MHD_create_response_from_callback (size,
 						4 * 1024,
