@@ -1743,7 +1743,7 @@ Return @code{NULL} on error (i.e. invalid arguments, out of memory).
 @deftypefun {struct MHD_Response *} MHD_create_response_from_fd_at_offset (size_t size, int fd, uint64_t offset)
 Create a response object.  The response object can be extended with
 header information and then it can be used any number of times.
-Note OS or MHD build may support only 31 bits offsets, in this case
+Note that OS or MHD build may support only 31 bits offsets, in this case
 function will return NULL if requested offset is larger than supported.
 
 @table @var
