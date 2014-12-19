@@ -319,8 +319,13 @@ file_reader (void *cls, uint64_t pos, char *buf, size_t max)
   ssize_t n;
   uint64_t set_pos = pos + response->fd_off;
 
+#ifdef HAVE_LSEEK64
+  if ((uint64_t)lseek64 (response->fd, set_pos, SEEK_SET) != set_pos)
+    return MHD_CONTENT_READER_END_WITH_ERROR;
+#else  /* !HAVE_LSEEK64 */
   if ((uint64_t)lseek (response->fd, (off_t)set_pos, SEEK_SET) != set_pos)
     return MHD_CONTENT_READER_END_WITH_ERROR;
+#endif /* !HAVE_LSEEK64 */
 
   n = read (response->fd, buf, max);
   if (0 == n)
@@ -368,10 +373,12 @@ MHD_create_response_from_fd_at_offset (size_t size,
 {
   struct MHD_Response *response;
 
+#ifndef HAVE_LSEEK64
   /* Check for support of requested offset value */
   if (sizeof(uint64_t) > sizeof(off_t) &&
         ((uint64_t)((off_t)offset)) != offset)
     return NULL;
+#endif /* !HAVE_LSEEK64 */
 
   response = MHD_create_response_from_callback (size,
 						4 * 1024,
