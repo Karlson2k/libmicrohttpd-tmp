@@ -319,7 +319,7 @@ file_reader (void *cls, uint64_t pos, char *buf, size_t max)
   ssize_t n;
   uint64_t set_pos = pos + response->fd_off;
 
-  if ((uint64_t)lseek (response->fd, set_pos, SEEK_SET) != set_pos)
+  if ((uint64_t)lseek (response->fd, (off_t)set_pos, SEEK_SET) != set_pos)
     return MHD_CONTENT_READER_END_WITH_ERROR;
 
   n = read (response->fd, buf, max);
