@@ -986,8 +986,8 @@ send_param_adapter (struct MHD_Connection *connection,
   ssize_t ret;
 #if LINUX
   MHD_socket fd;
-  off_t offset;
-  off_t left;
+  uint64_t offset64;
+  uint64_t left;
 #endif
 
   if ( (MHD_INVALID_SOCKET == connection->socket_fd) ||
@@ -1004,34 +1004,39 @@ send_param_adapter (struct MHD_Connection *connection,
        (NULL != connection->response) &&
        (MHD_INVALID_SOCKET != (fd = connection->response->fd)) )
     {
-      /* can use sendfile */
-      offset = (off_t) connection->response_write_position + connection->response->fd_off;
-      left = connection->response->total_size - connection->response_write_position;
-      if (left > SSIZE_MAX)
-	left = SSIZE_MAX; /* cap at return value limit */
-      if (-1 != (ret = sendfile (connection->socket_fd,
-				 fd,
-				 &offset,
-				 (size_t) left)))
-	{
-#if EPOLL_SUPPORT
-	  if (ret < left)
+	  off_t offset;
+      offset64 = connection->response_write_position + connection->response->fd_off;
+      offset = (off_t)offset64;
+      if (sizeof(offset64) == sizeof(offset) || offset64 == offset)
+      {
+        /* can use sendfile */
+        left = connection->response->total_size - connection->response_write_position;
+        if (left > SSIZE_MAX)
+	  left = SSIZE_MAX; /* cap at return value limit */
+        if (-1 != (ret = sendfile (connection->socket_fd,
+				   fd,
+				   &offset,
+				   (size_t) left)))
 	    {
-	      /* partial write --- no longer write-ready */
-	      connection->epoll_state &= ~MHD_EPOLL_STATE_WRITE_READY;
-	    }
+#if EPOLL_SUPPORT
+	      if (ret < left)
+	      {
+	        /* partial write --- no longer write-ready */
+	        connection->epoll_state &= ~MHD_EPOLL_STATE_WRITE_READY;
+	      }
 #endif
-	  return ret;
-	}
-      const int err = MHD_socket_errno_;
-      if ( (EINTR == err) || (EAGAIN == err) || (EWOULDBLOCK == err) )
-	return 0;
-      if ( (EINVAL == err) || (EBADF == err) )
-	return -1;
-      /* None of the 'usual' sendfile errors occurred, so we should try
-	 to fall back to 'SEND'; see also this thread for info on
-	 odd libc/Linux behavior with sendfile:
-	 http://lists.gnu.org/archive/html/libmicrohttpd/2011-02/msg00015.html */
+	    return ret;
+	  }
+        const int err = MHD_socket_errno_;
+        if ( (EINTR == err) || (EAGAIN == err) || (EWOULDBLOCK == err) )
+	  return 0;
+        if ( (EINVAL == err) || (EBADF == err) )
+	  return -1;
+        /* None of the 'usual' sendfile errors occurred, so we should try
+	   to fall back to 'SEND'; see also this thread for info on
+	   odd libc/Linux behavior with sendfile:
+	   http://lists.gnu.org/archive/html/libmicrohttpd/2011-02/msg00015.html */
+      }
     }
 #endif
   ret = send (connection->socket_fd, other, i, MSG_NOSIGNAL);
