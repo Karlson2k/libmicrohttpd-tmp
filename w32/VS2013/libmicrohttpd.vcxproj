@@ -65,6 +65,59 @@
     <ClInclude Include="..\..\src\microhttpd\tsearch.h" />
     <ClInclude Include="MHD_config.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="microhttpd_dll_res_vc.rc">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">true</ExcludedFromBuild>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="microhttpd_dll_res_vc.rc.in">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">Generating .dll description resource</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">Generating .dll description resource</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">Generating .dll description resource</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">Generating .dll description resource</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release-dll|Win32'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release-dll|x64'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release-dll|Win32'">Generating .dll description resource</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release-dll|x64'">Generating .dll description resource</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release-dll|Win32'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release-dll|x64'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug-dll|Win32'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug-dll|x64'">PowerShell.exe -Version 3.0 -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)gen_dll_res.ps1" -BasePath $(SolutionDir)</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug-dll|Win32'">Generating .dll description resource</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug-dll|x64'">Generating .dll description resource</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug-dll|Win32'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug-dll|x64'">$(SolutionDir)microhttpd_dll_res_vc.rc</Outputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-dll|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-dll|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-dll|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-dll|x64'">false</ExcludedFromBuild>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release-dll|Win32'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release-dll|x64'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug-dll|Win32'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug-dll|x64'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release-static|Win32'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug-static|Win32'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release-static|x64'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug-static|x64'">$(SolutionDir)gen_dll_res.ps1;$(SolutionDir).\..\..\configure.ac</AdditionalInputs>
+    </CustomBuild>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9CFB0342-A9E7-483E-BEE5-A1DE22584C5A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
