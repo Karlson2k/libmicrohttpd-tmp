@@ -66,7 +66,7 @@
 #define HAVE___LSEEKI64 1
 
 /* Define to 1 if you have the `gmtime_s' function. */
-#define HAVE_GMTIME_S 1
+#define HAVE_W32_GMTIME_S 1
 
 #if _MSC_VER >= 1900 /* snprintf() supported natively since VS2015 */
 /* Define to 1 if you have the `snprintf' function. */
