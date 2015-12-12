@@ -30,6 +30,7 @@
 #include "memorypool.h"
 #include "response.h"
 #include "mhd_mono_clock.h"
+#include "mhd_str.h"
 
 #if HAVE_NETINET_TCP_H
 /* for TCP_CORK */
@@ -432,7 +433,7 @@ MHD_lookup_connection_value (struct MHD_Connection *connection,
 	( (key == pos->header) ||
 	  ( (NULL != pos->header) &&
 	    (NULL != key) &&
-        (MHD_str_equal_caseless_(key, pos->header)))))
+        (strasciincaseeq (key, pos->header)))))
       return pos->value;
   return NULL;
 }
@@ -452,12 +453,12 @@ need_100_continue (struct MHD_Connection *connection)
 
   return ( (NULL == connection->response) &&
 	   (NULL != connection->version) &&
-       (MHD_str_equal_caseless_(connection->version,
+       (strasciincaseeq (connection->version,
 			     MHD_HTTP_VERSION_1_1)) &&
 	   (NULL != (expect = MHD_lookup_connection_value (connection,
 							   MHD_HEADER_KIND,
 							   MHD_HTTP_HEADER_EXPECT))) &&
-	   (MHD_str_equal_caseless_(expect, "100-continue")) &&
+	   (strasciincaseeq (expect, "100-continue")) &&
 	   (connection->continue_message_write_offset <
 	    strlen (HTTP_100_CONTINUE)) );
 }
@@ -728,22 +729,22 @@ keepalive_possible (struct MHD_Connection *connection)
   end = MHD_lookup_connection_value (connection,
                                      MHD_HEADER_KIND,
                                      MHD_HTTP_HEADER_CONNECTION);
-  if (MHD_str_equal_caseless_(connection->version,
+  if (strasciincaseeq (connection->version,
                        MHD_HTTP_VERSION_1_1))
   {
     if (NULL == end)
       return MHD_YES;
-    if ( (MHD_str_equal_caseless_ (end, "close")) ||
-         (MHD_str_equal_caseless_ (end, "upgrade")) )
+    if ( (strasciincaseeq (end, "close")) ||
+         (strasciincaseeq (end, "upgrade")) )
       return MHD_NO;
    return MHD_YES;
   }
-  if (MHD_str_equal_caseless_(connection->version,
+  if (strasciincaseeq (connection->version,
                        MHD_HTTP_VERSION_1_0))
   {
     if (NULL == end)
       return MHD_NO;
-    if (MHD_str_equal_caseless_(end, "Keep-Alive"))
+    if (strasciincaseeq (end, "Keep-Alive"))
       return MHD_YES;
     return MHD_NO;
   }
@@ -886,7 +887,7 @@ build_header_response (struct MHD_Connection *connection)
                "%s %u %s\r\n",
 	       (0 != (connection->responseCode & MHD_ICY_FLAG))
 	       ? "ICY"
-	       : ( (MHD_str_equal_caseless_ (MHD_HTTP_VERSION_1_0,
+	       : ( (strasciincaseeq (MHD_HTTP_VERSION_1_0,
 				     connection->version))
 		   ? MHD_HTTP_VERSION_1_0
 		   : MHD_HTTP_VERSION_1_1),
@@ -925,16 +926,16 @@ build_header_response (struct MHD_Connection *connection)
                                                     MHD_HTTP_HEADER_CONNECTION);
       response_has_keepalive = response_has_close;
       if ( (NULL != response_has_close) &&
-           (!MHD_str_equal_caseless_ (response_has_close, "close")) )
+           (!strasciincaseeq (response_has_close, "close")) )
         response_has_close = NULL;
       if ( (NULL != response_has_keepalive) &&
-           (!MHD_str_equal_caseless_ (response_has_keepalive, "Keep-Alive")) )
+           (!strasciincaseeq (response_has_keepalive, "Keep-Alive")) )
         response_has_keepalive = NULL;
       client_requested_close = MHD_lookup_connection_value (connection,
                                                             MHD_HEADER_KIND,
                                                             MHD_HTTP_HEADER_CONNECTION);
       if ( (NULL != client_requested_close) &&
-           (!MHD_str_equal_caseless_ (client_requested_close, "close")) )
+           (!strasciincaseeq (client_requested_close, "close")) )
         client_requested_close = NULL;
 
       /* now analyze chunked encoding situation */
@@ -950,7 +951,7 @@ build_header_response (struct MHD_Connection *connection)
           /* 'close' header doesn't exist yet, see if we need to add one;
              if the client asked for a close, no need to start chunk'ing */
           if ( (MHD_YES == keepalive_possible (connection)) &&
-               (MHD_str_equal_caseless_ (MHD_HTTP_VERSION_1_1,
+               (strasciincaseeq (MHD_HTTP_VERSION_1_1,
                                          connection->version) ) )
             {
               have_encoding = MHD_get_response_header (connection->response,
@@ -960,7 +961,7 @@ build_header_response (struct MHD_Connection *connection)
                   must_add_chunked_encoding = MHD_YES;
                   connection->have_chunked_upload = MHD_YES;
                 }
-              else if (MHD_str_equal_caseless_(have_encoding, "identity"))
+              else if (strasciincaseeq (have_encoding, "identity"))
                 {
                   /* application forced identity encoding, can't do 'chunked' */
                   must_add_close = MHD_YES;
@@ -993,7 +994,7 @@ build_header_response (struct MHD_Connection *connection)
       if ( (MHD_SIZE_UNKNOWN != connection->response->total_size) &&
            (NULL == have_content_length) &&
            ( (NULL == connection->method) ||
-             (! MHD_str_equal_caseless_ (connection->method,
+             (!strasciincaseeq (connection->method,
                                          MHD_HTTP_METHOD_CONNECT)) ) )
         {
           /*
@@ -1047,7 +1048,7 @@ build_header_response (struct MHD_Connection *connection)
     if ( (pos->kind == kind) &&
          (! ( (MHD_YES == must_add_close) &&
               (pos->value == response_has_keepalive) &&
-              (MHD_str_equal_caseless_(pos->header,
+              (strasciincaseeq (pos->header,
                                 MHD_HTTP_HEADER_CONNECTION) ) ) ) )
       size += strlen (pos->header) + strlen (pos->value) + 4; /* colon, space, linefeeds */
   /* produce data */
@@ -1100,7 +1101,7 @@ build_header_response (struct MHD_Connection *connection)
     if ( (pos->kind == kind) &&
          (! ( (pos->value == response_has_keepalive) &&
               (MHD_YES == must_add_close) &&
-              (MHD_str_equal_caseless_(pos->header,
+              (strasciincaseeq (pos->header,
                                 MHD_HTTP_HEADER_CONNECTION) ) ) ) )
       off += sprintf (&data[off],
 		      "%s: %s\r\n",
@@ -2031,7 +2032,7 @@ parse_connection_headers (struct MHD_Connection *connection)
   parse_cookie_header (connection);
   if ( (0 != (MHD_USE_PEDANTIC_CHECKS & connection->daemon->options)) &&
        (NULL != connection->version) &&
-       (MHD_str_equal_caseless_(MHD_HTTP_VERSION_1_1, connection->version)) &&
+       (strasciincaseeq (MHD_HTTP_VERSION_1_1, connection->version)) &&
        (NULL ==
         MHD_lookup_connection_value (connection,
                                      MHD_HEADER_KIND,
@@ -2062,7 +2063,7 @@ parse_connection_headers (struct MHD_Connection *connection)
   if (NULL != enc)
     {
       connection->remaining_upload_size = MHD_SIZE_UNKNOWN;
-      if (MHD_str_equal_caseless_(enc, "chunked"))
+      if (strasciincaseeq (enc, "chunked"))
         connection->have_chunked_upload = MHD_YES;
     }
   else
@@ -2523,9 +2524,9 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
               break;
             }
           if ( (NULL != connection->response) &&
-	       ( (MHD_str_equal_caseless_ (connection->method,
+	       ( (strasciincaseeq (connection->method,
 				   MHD_HTTP_METHOD_POST)) ||
-		 (MHD_str_equal_caseless_ (connection->method,
+		 (strasciincaseeq (connection->method,
 				   MHD_HTTP_METHOD_PUT))) )
             {
               /* we refused (no upload allowed!) */
@@ -2740,7 +2741,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
           end =
             MHD_get_response_header (connection->response,
 				     MHD_HTTP_HEADER_CONNECTION);
-          client_close = ((NULL != end) && (MHD_str_equal_caseless_(end, "close")));
+          client_close = ((NULL != end) && (strasciincaseeq (end, "close")));
           MHD_destroy_response (connection->response);
           connection->response = NULL;
           if ( (NULL != daemon->notify_completed) &&
@@ -2759,7 +2760,7 @@ MHD_connection_handle_idle (struct MHD_Connection *connection)
           if ( (MHD_YES == connection->read_closed) ||
                (client_close) ||
                ( (NULL != end) &&
-		 (MHD_str_equal_caseless_ (end, "close")) ) )
+		 (strasciincaseeq (end, "close")) ) )
             {
               connection->read_closed = MHD_YES;
               connection->read_buffer_offset = 0;
@@ -3072,7 +3073,7 @@ MHD_queue_response (struct MHD_Connection *connection,
   connection->response = response;
   connection->responseCode = status_code;
   if ( (NULL != connection->method) &&
-       (MHD_str_equal_caseless_ (connection->method, MHD_HTTP_METHOD_HEAD)) )
+       (strasciincaseeq (connection->method, MHD_HTTP_METHOD_HEAD)) )
     {
       /* if this is a "HEAD" request, pretend that we
          have already sent the full message body */
@@ -3080,9 +3081,9 @@ MHD_queue_response (struct MHD_Connection *connection,
     }
   if ( (MHD_CONNECTION_HEADERS_PROCESSED == connection->state) &&
        (NULL != connection->method) &&
-       ( (MHD_str_equal_caseless_ (connection->method,
+       ( (strasciincaseeq (connection->method,
 			   MHD_HTTP_METHOD_POST)) ||
-	 (MHD_str_equal_caseless_ (connection->method,
+	 (strasciincaseeq (connection->method,
 			   MHD_HTTP_METHOD_PUT))) )
     {
       /* response was queued "early", refuse to read body / footers or

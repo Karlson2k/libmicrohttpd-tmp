@@ -27,6 +27,7 @@
 #include "internal.h"
 #include "md5.h"
 #include "mhd_mono_clock.h"
+#include "mhd_str.h"
 
 #if defined(_WIN32) && defined(MHD_W32_MUTEX_)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -121,7 +122,7 @@ digest_calc_ha1 (const char *alg,
   MD5Update (&md5, (const unsigned char*)":", 1);
   MD5Update (&md5, (const unsigned char*)password, strlen (password));
   MD5Final (ha1, &md5);
-  if (MHD_str_equal_caseless_(alg, "md5-sess"))
+  if (strasciincaseeq (alg, "md5-sess"))
     {
       MD5Init (&md5);
       MD5Update (&md5, (const unsigned char*)ha1, sizeof (ha1));
@@ -253,7 +254,7 @@ lookup_sub_value (char *dest,
 	    return 0; /* end quote not found */
 	  qn = q2 + 1;
 	}
-      if ((MHD_str_equal_caseless_n_(ptr,
+      if ((strasciincaseeqn (ptr,
 			      key,
 			      keylen)) &&
 	   (eq == &ptr[keylen]) )

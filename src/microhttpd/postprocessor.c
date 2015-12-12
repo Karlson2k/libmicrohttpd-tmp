@@ -24,6 +24,7 @@
  */
 
 #include "internal.h"
+#include "mhd_str.h"
 
 /**
  * Size of on-stack buffer that we use for un-escaping of the value.
@@ -286,10 +287,10 @@ MHD_create_post_processor (struct MHD_Connection *connection,
   if (encoding == NULL)
     return NULL;
   boundary = NULL;
-  if (!MHD_str_equal_caseless_n_ (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, encoding,
+  if (!strasciincaseeqn (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, encoding,
                         strlen (MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
     {
-      if (!MHD_str_equal_caseless_n_ (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, encoding,
+      if (!strasciincaseeqn (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, encoding,
                        strlen (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
         return NULL;
       boundary =
@@ -502,7 +503,7 @@ try_match_header (const char *prefix, char *line, char **suffix)
     return MHD_NO;
   while (*line != 0)
     {
-      if (MHD_str_equal_caseless_n_ (prefix, line, strlen (prefix)))
+      if (strasciincaseeqn (prefix, line, strlen (prefix)))
         {
           *suffix = strdup (&line[strlen (prefix)]);
           return MHD_YES;
@@ -662,7 +663,7 @@ process_multipart_headers (struct MHD_PostProcessor *pp,
   if (buf[newline] == '\r')
     pp->skip_rn = RN_OptN;
   buf[newline] = '\0';
-  if (MHD_str_equal_caseless_n_ ("Content-disposition: ",
+  if (strasciincaseeqn ("Content-disposition: ",
                         buf, strlen ("Content-disposition: ")))
     {
       try_get_value (&buf[strlen ("Content-disposition: ")],
@@ -968,7 +969,7 @@ post_process_multipart (struct MHD_PostProcessor *pp,
           break;
         case PP_PerformCheckMultipart:
           if ((pp->content_type != NULL) &&
-              (MHD_str_equal_caseless_n_ (pp->content_type,
+              (strasciincaseeqn (pp->content_type,
                                  "multipart/mixed",
                                  strlen ("multipart/mixed"))))
             {
@@ -1136,10 +1137,10 @@ MHD_post_process (struct MHD_PostProcessor *pp,
     return MHD_YES;
   if (NULL == pp)
     return MHD_NO;
-  if (MHD_str_equal_caseless_n_ (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, pp->encoding,
+  if (strasciincaseeqn (MHD_HTTP_POST_ENCODING_FORM_URLENCODED, pp->encoding,
                          strlen(MHD_HTTP_POST_ENCODING_FORM_URLENCODED)))
     return post_process_urlencoded (pp, post_data, post_data_len);
-  if (MHD_str_equal_caseless_n_ (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, pp->encoding,
+  if (strasciincaseeqn (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA, pp->encoding,
                    strlen (MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)))
     return post_process_multipart (pp, post_data, post_data_len);
   /* this should never be reached */
