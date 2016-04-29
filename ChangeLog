@@ -1,3 +1,11 @@
+Tue Apr 13 21:46:01 CET 2016
+	Ignored specific errors in 'test_post' test until libcurl
+	will implement workaround for WinSock bug.
+	Fixed handling of caller-supplied socket with
+	MHD_OPTION_LISTEN_SOCKET (regression in 0.9.49).
+	Minor fixes.
+	Various cosmetics and comments fixes. -EG
+
 Sat Apr 09 13:05:42 CET 2016
 	Releasing libmicrohttpd 0.9.49. -EG
 
