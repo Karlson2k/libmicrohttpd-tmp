@@ -160,13 +160,11 @@ freebsd*)
 openbsd*)
      AC_DEFINE_UNQUOTED(SOMEBSD,1,[This is a BSD system])
      AC_DEFINE_UNQUOTED(OPENBSD,1,[This is an OpenBSD system])
-     mhd_host_os='OpenBSD'
      AC_MSG_RESULT([[$mhd_host_os]])
      ;;
 netbsd*)
      AC_DEFINE_UNQUOTED(SOMEBSD,1,[This is a BSD system])
      AC_DEFINE_UNQUOTED(NETBSD,1,[This is a NetBSD system])
-     mhd_host_os='NetBSD'
      AC_MSG_RESULT([[$mhd_host_os]])
      ;;
 *solaris*)
