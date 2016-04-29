@@ -1,3 +1,9 @@
+Mon Apr 18 19:35:14 CET 2016
+	Fixed handling of MHD_OPTION_THREAD_POOL_SIZE with
+	MHD_USE_SUSPEND_RESUME (regression in 0.9.49).
+	Fixed data races leading to inability in rare situations to
+	resume suspended connection. -EG
+
 Tue Apr 13 21:46:01 CET 2016
 	Ignored specific errors in 'test_post' test until libcurl
 	will implement workaround for WinSock bug.
