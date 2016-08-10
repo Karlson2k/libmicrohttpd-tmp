@@ -83,6 +83,10 @@
 #endif /* !WIN32_LEAN_AND_MEAN */
 #endif /* _WIN32 */
 
+#if defined(__VXWORKS__) || defined(__vxworks) || defined(OS_VXWORKS)
+#define RESTRICT __restrict__
+#endif /* __VXWORKS__ || __vxworks || OS_VXWORKS */
+
 #if LINUX+0 && (defined(HAVE_SENDFILE64) || defined(HAVE_LSEEK64)) && ! defined(_LARGEFILE64_SOURCE)
 /* On Linux, special macro is required to enable definitions of some xxx64 functions */
 #define _LARGEFILE64_SOURCE 1
