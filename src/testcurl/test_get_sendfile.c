@@ -101,7 +101,7 @@ ahc_echo (void *cls,
     {
       fprintf (stderr, "Failed to open `%s': %s\n",
 	       sourcefile,
-	       MHD_strerror_ (errno));
+	       strerror (errno));
       exit (1);
     }
   response = MHD_create_response_from_fd (strlen (TESTSTR), fd);
