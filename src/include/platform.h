@@ -55,14 +55,24 @@
    are available) */
 
 
-#ifdef OS_VXWORKS
+#if defined(__VXWORKS__) || defined(__vxworks) || defined(OS_VXWORKS)
 #include <stdarg.h>
 #include <sys/mman.h>
-#endif
+#ifdef HAVE_SOCKLIB_H
+#include <sockLib.h>
+#endif /* HAVE_SOCKLIB_H */
+#ifdef HAVE_INETLIB_H
+#include <inetLib.h>
+#endif /* HAVE_INETLIB_H */
+#endif /* __VXWORKS__ */
+
 #if HAVE_MEMORY_H
 #include <memory.h>
 #endif
 
+#if HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -80,6 +90,9 @@
 #endif
 #if HAVE_TIME_H
 #include <time.h>
+#endif
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
 #endif
 
 #if defined(__CYGWIN__) && !defined(_SYS_TYPES_FD_SET)

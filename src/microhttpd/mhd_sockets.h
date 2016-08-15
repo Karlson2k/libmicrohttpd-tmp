@@ -92,6 +92,9 @@
 /* for TCP_FASTOPEN and TCP_CORK*/
 #    include <netinet/tcp.h>
 #  endif
+#  if (!defined(HAVE_SYS_SOCKET_H) || !defined(HAVE_SYS_SOCKET_H)) && defined(HAVE_SYS_TYPES_H)
+#    include <sys/types.h>>
+#  endif /* (!HAVE_SYS_SOCKET_H || !HAVE_SYS_SOCKET_H) && HAVE_SYS_TYPES_H */
 #elif defined(MHD_WINSOCK_SOCKETS)
 #  ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN 1
