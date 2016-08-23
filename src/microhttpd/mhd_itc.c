@@ -26,6 +26,11 @@
 
 #include "mhd_itc.h"
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+#include <fcntl.h>
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 /**
  * Create pair of mutually connected TCP/IP sockets on loopback address
