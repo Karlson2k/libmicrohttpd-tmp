@@ -25,6 +25,10 @@
  */
 
 #include "mhd_sockets.h"
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+#include <fcntl.h>
 
 #ifdef MHD_WINSOCK_SOCKETS
 
