@@ -32,6 +32,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include "mhd_sockets.h"
 
 #ifndef WINDOWS
 #include <sys/socket.h>
