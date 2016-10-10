@@ -3941,6 +3941,22 @@ parse_options_va (struct MHD_Daemon *daemon,
                                                  void *);
           break;
         case MHD_OPTION_THREAD_POOL_SIZE:
+          if (0 == (daemon->options & MHD_USE_SELECT_INTERNALLY))
+            {
+#ifdef HAVE_MESSAGES
+              MHD_DLOG (daemon,
+                        _("Thread pool can be used only with MHD_USE_SELECT_INTERNALLY or MHD_USE_POLL_INTERNALLY.\n"));
+#endif
+              return MHD_NO;
+            }
+          if (0 != (daemon->options & MHD_USE_THREAD_PER_CONNECTION))
+            {
+#ifdef HAVE_MESSAGES
+              MHD_DLOG (daemon,
+                        _("Thread pool cannot be used with MHD_USE_THREAD_PER_CONNECTION.\n"));
+#endif
+              return MHD_NO;
+            }
           daemon->worker_pool_size = va_arg (ap,
                                              unsigned int);
 	  if (daemon->worker_pool_size >= (SIZE_MAX / sizeof (struct MHD_Daemon)))
@@ -4565,17 +4581,6 @@ MHD_start_daemon_va (unsigned int flags,
       return NULL;
     }
 #endif
-
-  /* Thread pooling currently works only with internal select thread model */
-  if ( (0 == (flags & MHD_USE_SELECT_INTERNALLY)) &&
-       (daemon->worker_pool_size > 0) )
-    {
-#ifdef HAVE_MESSAGES
-      MHD_DLOG (daemon,
-		_("MHD thread pooling only works with MHD_USE_SELECT_INTERNALLY\n"));
-#endif
-      goto free_and_fail;
-    }
 
   if ( (MHD_USE_SUSPEND_RESUME == (flags & MHD_USE_SUSPEND_RESUME)) &&
        (0 != (flags & MHD_USE_THREAD_PER_CONNECTION)) )
