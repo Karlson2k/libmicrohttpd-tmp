@@ -4511,8 +4511,8 @@ MHD_start_daemon_va (unsigned int flags,
       return NULL;
     }
 
-  if (use_itc && 1 < daemon->worker_pool_size)
-    {
+  if (use_itc && 0 == daemon->worker_pool_size)
+    { /* For thread pool individual ITCs are used */
       if (! MHD_itc_init_ (daemon->itc))
         {
 #ifdef HAVE_MESSAGES
