@@ -3342,7 +3342,7 @@ MHD_queue_response (struct MHD_Connection *connection,
   if ( (NULL != response->upgrade_handler) &&
        (0 != (MHD_USE_EPOLL & daemon->options)) &&
        (0 != (MHD_USE_TLS & daemon->options)) &&
-       (MHD_USE_TLS_EPOLL_UPGRADE != (MHD_USE_TLS_EPOLL_UPGRADE & daemon->options)) )
+       (0 == (MHD_USE_TLS_EPOLL_UPGRADE & daemon->options)) )
     {
 #ifdef HAVE_MESSAGES
       MHD_DLOG (daemon,
