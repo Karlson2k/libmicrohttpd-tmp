@@ -109,8 +109,17 @@ test_upgrade (int flags,
   struct MHD_Daemon *d;
   MHD_socket sock;
   pid_t pid;
+  struct MHD_OptionItem opts[2];
 
   done = 0;
+  if (pool > 0)
+    {
+      opts[0].option = MHD_OPTION_THREAD_POOL_SIZE;
+      opts[0].value = (intptr_t) pool;
+      opts[1].option = MHD_OPTION_END;
+    }
+  else
+    opts[0].option = MHD_OPTION_END;
   if (0 == (flags & MHD_USE_THREAD_PER_CONNECTION))
     flags |= MHD_USE_SUSPEND_RESUME;
   d = MHD_start_daemon (flags | MHD_USE_DEBUG | MHD_USE_TLS,
@@ -119,7 +128,7 @@ test_upgrade (int flags,
                         &ahc_upgrade, NULL,
                         MHD_OPTION_HTTPS_MEM_KEY, srv_signed_key_pem,
                         MHD_OPTION_HTTPS_MEM_CERT, srv_signed_cert_pem,
-                        MHD_OPTION_THREAD_POOL_SIZE, pool,
+                        MHD_OPTION_ARRAY, opts,
                         MHD_OPTION_END);
   if (NULL == d)
     return 2;

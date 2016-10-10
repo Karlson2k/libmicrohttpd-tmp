@@ -55,15 +55,24 @@ test_upgrade (int flags,
   struct MHD_Daemon *d;
   MHD_socket sock;
   struct sockaddr_in sa;
+  struct MHD_OptionItem opts[2];
 
   done = 0;
+  if (pool > 0)
+    {
+      opts[0].option = MHD_OPTION_THREAD_POOL_SIZE;
+      opts[0].value = (intptr_t) pool;
+      opts[1].option = MHD_OPTION_END;
+    }
+  else
+    opts[0].option = MHD_OPTION_END;
   if (0 == (flags & MHD_USE_THREAD_PER_CONNECTION))
     flags |= MHD_USE_SUSPEND_RESUME;
   d = MHD_start_daemon (flags | MHD_USE_DEBUG,
                         1080,
                         NULL, NULL,
                         &ahc_upgrade, NULL,
-                        MHD_OPTION_THREAD_POOL_SIZE, pool,
+                        MHD_OPTION_ARRAY, opts,
                         MHD_OPTION_END);
   if (NULL == d)
     return 2;
