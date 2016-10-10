@@ -3762,7 +3762,7 @@ MHD_quiesce_daemon (struct MHD_Daemon *daemon)
   ret = daemon->socket_fd;
   if (MHD_INVALID_SOCKET == ret)
     return MHD_INVALID_SOCKET;
-  if ( (MHD_ITC_IS_INVALID_(daemon->itc)) &&
+  if ( (0 == (daemon->options & MHD_USE_ITC)) &&
        (0 != (daemon->options & (MHD_USE_SELECT_INTERNALLY | MHD_USE_THREAD_PER_CONNECTION))) )
     {
 #ifdef HAVE_MESSAGES
