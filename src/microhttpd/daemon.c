@@ -3952,6 +3952,15 @@ parse_options_va (struct MHD_Daemon *daemon,
 #endif
 	      return MHD_NO;
 	    }
+          if (1 >= daemon->worker_pool_size)
+            {
+#ifdef HAVE_MESSAGES
+              MHD_DLOG (daemon,
+                        _("Specified thread pool size (%u) is not valid\n"),
+                        daemon->worker_pool_size);
+#endif
+              return MHD_NO;
+            }
           break;
 #if HTTPS_SUPPORT
         case MHD_OPTION_HTTPS_MEM_KEY:
