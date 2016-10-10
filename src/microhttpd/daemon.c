@@ -2140,7 +2140,7 @@ MHD_suspend_connection (struct MHD_Connection *connection)
   struct MHD_Daemon *daemon;
 
   daemon = connection->daemon;
-  if (MHD_USE_SUSPEND_RESUME != (daemon->options & MHD_USE_SUSPEND_RESUME))
+  if (0 == (daemon->options & MHD_USE_SUSPEND_RESUME))
     MHD_PANIC (_("Cannot suspend connections without enabling MHD_USE_SUSPEND_RESUME!\n"));
   if (0 != (daemon->options & MHD_USE_THREAD_PER_CONNECTION))
     {
@@ -2205,7 +2205,7 @@ MHD_resume_connection (struct MHD_Connection *connection)
   struct MHD_Daemon *daemon;
 
   daemon = connection->daemon;
-  if (MHD_USE_SUSPEND_RESUME != (daemon->options & MHD_USE_SUSPEND_RESUME))
+  if (0 == (daemon->options & MHD_USE_SUSPEND_RESUME))
     MHD_PANIC (_("Cannot resume connections without enabling MHD_USE_SUSPEND_RESUME!\n"));
   if (0 != (daemon->options & MHD_USE_THREAD_PER_CONNECTION))
     MHD_mutex_lock_chk_ (&daemon->cleanup_connection_mutex);
@@ -2712,7 +2712,7 @@ MHD_run_from_select (struct MHD_Daemon *daemon,
     MHD_itc_clear_ (daemon->itc);
 
   /* Resuming external connections when using an extern mainloop  */
-  if (MHD_USE_SUSPEND_RESUME == (daemon->options & mask))
+  if (MHD_USE_SUSPEND_RESUME == (daemon->options & mask | MHD_USE_ITC))
     resume_suspended_connections (daemon);
 
 #ifdef EPOLL_SUPPORT
@@ -2806,7 +2806,7 @@ MHD_select (struct MHD_Daemon *daemon,
   err_state = MHD_NO;
   if (0 == (daemon->options & MHD_USE_THREAD_PER_CONNECTION))
     {
-      if ( (MHD_USE_SUSPEND_RESUME == (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
+      if ( (0 != (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
            (MHD_YES == resume_suspended_connections (daemon)) )
         may_block = MHD_NO;
 
@@ -2956,7 +2956,7 @@ MHD_poll_all (struct MHD_Daemon *daemon,
   struct MHD_UpgradeResponseHandle *urhn;
 #endif
 
-  if ( (MHD_USE_SUSPEND_RESUME == (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
+  if ( (0 != (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
        (MHD_YES == resume_suspended_connections (daemon)) )
     may_block = MHD_NO;
 
@@ -3549,7 +3549,7 @@ MHD_epoll (struct MHD_Daemon *daemon,
 
   /* we handle resumes here because we may have ready connections
      that will not be placed into the epoll list immediately. */
-  if ( (MHD_USE_SUSPEND_RESUME == (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
+  if ( (0 != (daemon->options & MHD_USE_SUSPEND_RESUME)) &&
        (MHD_YES == resume_suspended_connections (daemon)) )
     may_block = MHD_NO;
 
@@ -4350,7 +4350,7 @@ setup_epoll_to_listen (struct MHD_Daemon *daemon)
       return MHD_NO;
     }
   if ( (MHD_ITC_IS_VALID_(daemon->itc)) &&
-       (MHD_USE_SUSPEND_RESUME == (daemon->options & MHD_USE_SUSPEND_RESUME)) )
+       (0 != (daemon->options & MHD_USE_SUSPEND_RESUME)) )
     {
       event.events = EPOLLIN | EPOLLET;
       event.data.ptr = NULL;
@@ -4604,7 +4604,7 @@ MHD_start_daemon_va (unsigned int flags,
     }
 #endif
 
-  if ( (MHD_USE_SUSPEND_RESUME == (flags & MHD_USE_SUSPEND_RESUME)) &&
+  if ( (0 != (flags & MHD_USE_SUSPEND_RESUME)) &&
        (0 != (flags & MHD_USE_THREAD_PER_CONNECTION)) )
     {
 #ifdef HAVE_MESSAGES
