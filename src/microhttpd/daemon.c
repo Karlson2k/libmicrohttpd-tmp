@@ -4475,38 +4475,16 @@ MHD_start_daemon_va (unsigned int flags,
   daemon->custom_error_log_cls = stderr;
 #endif
 #ifdef HAVE_LISTEN_SHUTDOWN
-  use_itc = (0 != (daemon->options & (MHD_USE_NO_LISTEN_SOCKET | MHD_USE_ITC)));
+  if (0 != (daemon->options & MHD_USE_NO_LISTEN_SOCKET))
+    daemon->options |= MHD_USE_ITC;
 #else
-  use_itc = 1; /* yes, must use ITC to signal thread */
+  daemon->options |= MHD_USE_ITC; /* yes, must use ITC to signal thread */
 #endif
   if (0 == (flags & (MHD_USE_SELECT_INTERNALLY | MHD_USE_THREAD_PER_CONNECTION)))
-    use_itc = 0; /* useless if we are using 'external' select */
-  if (use_itc)
-  {
-    if (! MHD_itc_init_ (daemon->itc))
-    {
-#ifdef HAVE_MESSAGES
-      MHD_DLOG (daemon,
-		_("Failed to create inter-thread communication channel: %s\n"),
-		MHD_itc_last_strerror_ ());
-#endif
-      free (daemon);
-      return NULL;
-    }
-  }
-  if ( (0 == (flags & (MHD_USE_POLL | MHD_USE_EPOLL))) &&
-       (1 == use_itc) &&
-       (! MHD_SCKT_FD_FITS_FDSET_(MHD_itc_r_fd_ (daemon->itc),
-                                  NULL)) )
-    {
-#ifdef HAVE_MESSAGES
-      MHD_DLOG (daemon,
-		_("file descriptor for inter-thread communication channel exceeds maximum value\n"));
-#endif
-      MHD_itc_destroy_chk_ (daemon->itc);
-      free (daemon);
-      return NULL;
-    }
+    use_itc &= ~((int)MHD_USE_ITC); /* useless if we are using 'external' select */
+
+  use_itc = (0 != (daemon->options & MHD_USE_ITC));
+
 #ifdef DAUTH_SUPPORT
   daemon->digest_auth_rand_size = 0;
   daemon->digest_auth_random = NULL;
@@ -4532,6 +4510,44 @@ MHD_start_daemon_va (unsigned int flags,
       free (daemon);
       return NULL;
     }
+
+  if (use_itc && 1 < daemon->worker_pool_size)
+    {
+      if (! MHD_itc_init_ (daemon->itc))
+        {
+#ifdef HAVE_MESSAGES
+          MHD_DLOG (daemon,
+                    _("Failed to create inter-thread communication channel: %s\n"),
+                    MHD_itc_last_strerror_ ());
+#endif
+#if HTTPS_SUPPORT
+          if ( (0 != (flags & MHD_USE_SSL)) &&
+               (NULL != daemon->priority_cache) )
+            gnutls_priority_deinit (daemon->priority_cache);
+#endif
+          free (daemon);
+          return NULL;
+        }
+    }
+  if ( (0 == (flags & (MHD_USE_POLL | MHD_USE_EPOLL))) &&
+       (MHD_ITC_IS_VALID_ (daemon->itc)) &&
+       (! MHD_SCKT_FD_FITS_FDSET_(MHD_itc_r_fd_ (daemon->itc),
+                                  NULL)) )
+    {
+#ifdef HAVE_MESSAGES
+      MHD_DLOG (daemon,
+                _("file descriptor for inter-thread communication channel exceeds maximum value\n"));
+#endif
+      MHD_itc_destroy_chk_ (daemon->itc);
+#if HTTPS_SUPPORT
+          if ( (0 != (flags & MHD_USE_SSL)) &&
+               (NULL != daemon->priority_cache) )
+            gnutls_priority_deinit (daemon->priority_cache);
+#endif
+      free (daemon);
+      return NULL;
+    }
+
 #ifdef DAUTH_SUPPORT
   if (daemon->nonce_nc_size > 0)
     {
@@ -4542,6 +4558,8 @@ MHD_start_daemon_va (unsigned int flags,
 	  MHD_DLOG (daemon,
 		    _("Specified value for NC_SIZE too large\n"));
 #endif
+          if (MHD_ITC_IS_VALID_(daemon->itc))
+            MHD_itc_destroy_chk_ (daemon->itc);
 #if HTTPS_SUPPORT
 	  if (0 != (flags & MHD_USE_SSL))
 	    gnutls_priority_deinit (daemon->priority_cache);
@@ -4557,6 +4575,8 @@ MHD_start_daemon_va (unsigned int flags,
 		    _("Failed to allocate memory for nonce-nc map: %s\n"),
 		    MHD_strerror_ (errno));
 #endif
+          if (MHD_ITC_IS_VALID_(daemon->itc))
+            MHD_itc_destroy_chk_ (daemon->itc);
 #if HTTPS_SUPPORT
 	  if (0 != (flags & MHD_USE_SSL))
 	    gnutls_priority_deinit (daemon->priority_cache);
@@ -4572,6 +4592,8 @@ MHD_start_daemon_va (unsigned int flags,
       MHD_DLOG (daemon,
 		_("MHD failed to initialize nonce-nc mutex\n"));
 #endif
+      if (MHD_ITC_IS_VALID_(daemon->itc))
+        MHD_itc_destroy_chk_ (daemon->itc);
 #if HTTPS_SUPPORT
       if (0 != (flags & MHD_USE_SSL))
 	gnutls_priority_deinit (daemon->priority_cache);
@@ -4980,8 +5002,7 @@ MHD_start_daemon_va (unsigned int flags,
           d->worker_pool_size = 0;
           d->worker_pool = NULL;
 
-          /* Always use individual control ITCs */
-          if (1)
+          if (0 != (d->options & MHD_USE_ITC))
             {
               if (! MHD_itc_init_ (d->itc))
                 {
@@ -5330,14 +5351,8 @@ MHD_stop_daemon (struct MHD_Daemon *daemon)
             MHD_socket_close_chk_ (daemon->worker_pool[i].epoll_upgrade_fd);
 #endif
 #endif
-          /* Individual ITCs are always used */
-          if (1)
-            {
-              if (MHD_ITC_IS_VALID_ (daemon->worker_pool[i].itc) )
-                {
-                  MHD_itc_destroy_chk_ (daemon->worker_pool[i].itc);
-                }
-	    }
+          if (MHD_ITC_IS_VALID_ (daemon->worker_pool[i].itc))
+              MHD_itc_destroy_chk_ (daemon->worker_pool[i].itc);
 	}
       free (daemon->worker_pool);
     }
