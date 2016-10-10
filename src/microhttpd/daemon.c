@@ -4481,7 +4481,7 @@ MHD_start_daemon_va (unsigned int flags,
   daemon->options |= MHD_USE_ITC; /* yes, must use ITC to signal thread */
 #endif
   if (0 == (flags & (MHD_USE_SELECT_INTERNALLY | MHD_USE_THREAD_PER_CONNECTION)))
-    use_itc &= ~((int)MHD_USE_ITC); /* useless if we are using 'external' select */
+    daemon->options &= ~((int)MHD_USE_ITC); /* useless if we are using 'external' select */
 
   use_itc = (0 != (daemon->options & MHD_USE_ITC));
 
