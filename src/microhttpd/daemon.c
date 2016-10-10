@@ -2712,7 +2712,7 @@ MHD_run_from_select (struct MHD_Daemon *daemon,
     MHD_itc_clear_ (daemon->itc);
 
   /* Resuming external connections when using an extern mainloop  */
-  if (MHD_USE_SUSPEND_RESUME == (daemon->options & mask | MHD_USE_ITC))
+  if (MHD_USE_SUSPEND_RESUME == ((daemon->options & mask) | MHD_USE_ITC))
     resume_suspended_connections (daemon);
 
 #ifdef EPOLL_SUPPORT
