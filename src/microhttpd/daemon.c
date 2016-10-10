@@ -4326,7 +4326,7 @@ setup_epoll_to_listen (struct MHD_Daemon *daemon)
   if (MHD_INVALID_SOCKET == daemon->epoll_fd)
     return MHD_NO;
 #if HTTPS_SUPPORT
-  if (MHD_USE_TLS_EPOLL_UPGRADE == (MHD_USE_TLS_EPOLL_UPGRADE & daemon->options))
+  if (0 != (MHD_USE_TLS_EPOLL_UPGRADE & daemon->options))
     {
        daemon->epoll_upgrade_fd = setup_epoll_fd (daemon);
        if (MHD_INVALID_SOCKET == daemon->epoll_upgrade_fd)
